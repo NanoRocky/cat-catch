@@ -482,15 +482,11 @@ function clearRedundant() {
         });
         autoDownFlag && (chrome.storage.session ?? chrome.storage.local).set({ featAutoDownTabId: Array.from(G.featAutoDownTabId) });
 
-        G.blockUrlSet = new Set([...G.blockUrlSet].filter(x => allTabId.has(x)));
-        G.damnUrlSet = new Set([...G.damnUrlSet].filter(x => allTabId.has(x)));
-
         if (G.requestHeaders.size >= 10240) {
             G.requestHeaders.clear();
         }
     });
     // G.referer.clear();
-    // G.blackList.clear();
     // G.temp.clear();
 }
 
@@ -651,31 +647,9 @@ function send2local(action, data, tabId = 0) {
     });
 }
 
-function isDamnUrl(url) {
-    for (let key in G.damnUrl) {
-        G.damnUrl[key].lastIndex = 0;
-        if (G.damnUrl[key].test(url)) {
-            return true;
-        }
-    }
-    return false;
-}
 
-/**
- * 判断url是否在屏蔽网址中
- * @param {String} url 
- * @returns {Boolean}
- */
-function isLockUrl(url) {
-    for (let key in G.blockUrl) {
-        if (!G.blockUrl[key].state) { continue; }
-        G.blockUrl[key].url.lastIndex = 0;
-        if (G.blockUrl[key].url.test(url)) {
-            return true;
-        }
-    }
-    return false;
-}
+
+
 
 /**
  * 关闭标签页 如果tabId为0 则关闭当前标签
@@ -746,3 +720,4 @@ function trimData(originalData) {
     data.urlPanelShow = undefined;
     return data;
 }
+

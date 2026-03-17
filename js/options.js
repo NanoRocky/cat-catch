@@ -32,11 +32,7 @@ chrome.storage.sync.get(G.OptionLists, function (items) {
     }
     const $regexList = $("#regexList");
     for (let key in items.Regex) {
-        $regexList.append(Gethtml("Regex", { type: items.Regex[key].type, regex: items.Regex[key].regex, ext: items.Regex[key].ext, blackList: items.Regex[key].blackList, state: items.Regex[key].state }));
-    }
-    const $blockUrlList = $("#blockUrlList");
-    for (let key in items.blockUrl) {
-        $blockUrlList.append(Gethtml("blockUrl", { url: items.blockUrl[key].url, state: items.blockUrl[key].state }));
+        $regexList.append(Gethtml("Regex", { type: items.Regex[key].type, regex: items.Regex[key].regex, ext: items.Regex[key].ext, state: items.Regex[key].state }));
     }
     setTimeout(() => {
         for (let key in items) {
@@ -62,10 +58,6 @@ $("#AddType").bind("click", function () {
 $("#AddRegex").bind("click", function () {
     $("#regexList").append(Gethtml("Regex", { type: "ig", state: true }));
     $("#regexList [name=text]").last().focus();
-});
-$("#blockAddUrl").bind("click", function () {
-    $("#blockUrlList").append(Gethtml("blockUrl", { state: true }));
-    $("#blockUrlList [name=url]").last().focus();
 });
 $("#version").html(i18n.catCatch + " v" + chrome.runtime.getManifest().version);
 
@@ -100,17 +92,7 @@ function Gethtml(Type, Param = new Object()) {
             html = `<td><input type="text" value="${Param.type ? Param.type : ""}" name="type" class="regexType"></td>`
             html += `<td><input type="text" value="${Param.regex ? Param.regex : ""}" placeholder="${i18n.regexExpression}" name="regex" class="regex"></td>`
             html += `<td><input type="text" value="${Param.ext ? Param.ext : ""}" name="regexExt" class="regexExt"></td>`
-            html += `<td>
-            <div class="switch">
-                <label class="switchLabel switchRadius">
-                    <input type="checkbox" name="blackList" class="switchInput" ${Param.blackList ? 'checked="checked"' : ""}/>
-                    <span class="switchRound switchRadius"><em class="switchRoundBtn switchRadius"></em></span>
-                </label>
-            </div>
-        </td>`
-            break;
-        case "blockUrl":
-            html = `<td><input type="text" value="${Param.url ? Param.url : ""}" name="url" placeholder="${i18n.blockUrlTips}" class="width100"></td>`
+            html += ``
             break;
     }
     html = $(`<tr data-type="${Type}">
@@ -196,8 +178,6 @@ $("#allDisable, #allEnable").bind("click", function () {
         query = $("#typeList [name=state]");
     } else if (obj == "Regex") {
         query = $("#regexList [name=state]");
-    } else if (obj == "blockUrl") {
-        query = $("#blockUrlList [name=state]");
     }
     query.each(function () {
         $(this).prop("checked", state);
@@ -415,7 +395,6 @@ function Save(option, sec = 0) {
                 let GetRegex = _this.find("[name=regex]").val();
                 let GetExt = _this.find("[name=regexExt]").val()
                 let GetState = _this.find("[name=state]").prop("checked");
-                let GetBlackList = _this.find("[name=blackList]").prop("checked");
                 try {
                     new RegExp("", GetType);
                 } catch (e) {
@@ -423,23 +402,9 @@ function Save(option, sec = 0) {
                 }
                 if (isEmpty(GetRegex)) { return true; }
                 GetExt = GetExt ? GetExt.toLowerCase() : "";
-                Regex.push({ type: GetType, regex: GetRegex, ext: GetExt, blackList: GetBlackList, state: GetState });
+                Regex.push({ type: GetType, regex: GetRegex, ext: GetExt, state: GetState });
             });
             chrome.storage.sync.set({ Regex: Regex });
-            return;
-        }
-        if (option == "blockUrl") {
-            let blockUrl = new Array();
-            $("#blockUrlList tr").each(function (index) {
-                if (index === 0) return true;
-
-                const _this = $(this);
-                let url = _this.find("[name=url]").val();
-                let GetState = _this.find("[name=state]").prop("checked");
-                if (isEmpty(url)) { return true; }
-                blockUrl.push({ url: url, state: GetState });
-            });
-            chrome.storage.sync.set({ blockUrl: blockUrl });
             return;
         }
     }, sec);
@@ -467,3 +432,5 @@ const adjustSidebarPosition = () => {
 }
 window.addEventListener('load', adjustSidebarPosition)
 window.addEventListener('resize', adjustSidebarPosition);
+
+

@@ -19,7 +19,6 @@
       <li><a href="#anchorSuffix" data-i18n="suffix" title="suffix"></a></li>
       <li><a href="#anchorType" data-i18n="type" title="type"></a></li>
       <li><a href="#anchorRegexMatch" data-i18n="regexMatch" title="regexMatch"></a></li>
-      <li><a href="#anchorBlockUrl" data-i18n="blockUrl" title="blockUrl"></a></li>
       <li><a href="#anchorScriptSettings" data-i18n="Script" title="Script"></a></li>
       <li><a href="#anchorCopy" data-i18n="copy" title="copy"></a></li>
       <li><a href="#anchorAria2Rpc" title="Aria2 RPC">Aria2 RPC</a></li>
@@ -89,13 +88,9 @@
     <!-- 正则匹配 -->
     <section id="anchorRegexMatch">
       <h1 class="optionsTitle">
-        <img src="img/regex.png" style="width: 18px" class="regex" /><span data-i18n-outer="regexMatch"></span> / <span
-          data-i18n-outer="blockResource"></span>
+        <img src="img/regex.png" style="width: 18px" class="regex" /><span data-i18n-outer="regexMatch"></span>
       </h1>
       <div class="optionBox">
-        <span class="explain"><b data-i18n="blockResource"></b>
-          <p data-i18n-outer="blockResourceTip"></p>
-        </span><br>
         <span class="explain"><b data-i18n="flag"></b>
 
         </span><br>
@@ -108,7 +103,6 @@
             <th data-i18n="flag"></th>
             <th data-i18n="regexExpression"></th>
             <th data-i18n="suffix"></th>
-            <th data-i18n="blockResource"></th>
             <th data-i18n="enable"></th>
             <th data-i18n="delete"></th>
           </tr>
@@ -130,39 +124,6 @@
         <label for="testFlag" data-i18n="flag"></label><br />
         <input type="text" id="testFlag" style="width: 20px" value="ig" maxlength="4" />
         <span style="color: #ff0000" id="testResult" data-i18n="noMatch"></span>
-      </div>
-    </section>
-
-    <!-- 屏蔽网站 -->
-    <section id="anchorBlockUrl">
-      <h1 class="optionsTitle" data-i18n="blockUrl"></h1>
-      <div class="optionBox">
-        <div class="item">
-          <div data-i18n="setWhiteList"></div>
-          <div class="switch">
-            <label class="switchLabel switchRadius">
-              <input type="checkbox" id="blockUrlWhite" save="click" class="switchInput" />
-              <span class="switchRound switchRadius"><em class="switchRoundBtn switchRadius"></em></span>
-            </label>
-          </div>
-        </div>
-        <span class="explain" data-i18n="blockUrlTips"></span>
-        <table id="blockUrlList">
-          <tr>
-            <th>URL</th>
-            <th data-i18n="enable"></th>
-            <th data-i18n="delete"></th>
-          </tr>
-        </table>
-        <div class="flex-end">
-          <button type="button" id="blockAddUrl" class="button2" data-i18n="addUrl" title="add Url"></button>
-          <button type="button" id="ResetBlockUrl" data-reset="blockUrl" data-i18n="resetSettings"
-            title="reset block Url"></button>
-          <button type="button" id="allDisable" data-switch="blockUrl" data-i18n="disableAll"
-            title="disable All block Url"></button>
-          <button type="button" id="allEnable" data-switch="blockUrl" data-i18n="enableAll"
-            title="enable All block Url"></button>
-        </div>
       </div>
     </section>
 
@@ -911,3 +872,5 @@
 </body>
 
 </html>
+
+

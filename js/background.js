@@ -69,7 +69,6 @@ chrome.webRequest.onResponseStarted.addListener(
 chrome.webRequest.onErrorOccurred.addListener(
     function (data) {
         G.requestHeaders.delete(data.requestId);
-        G.blackList.delete(data.requestId);
     }, { urls: ["<all_urls>"] }
 );
 
@@ -83,22 +82,8 @@ function findMedia(data, isRegex = false, filter = false, timer = false) {
         return;
     }
 
-    if (G.damn && G.damnUrlSet.has(data.tabId)) {
-        return;
-    }
-
-    // 检查 是否启用 是否在当前标签是否在屏蔽列表中
-    const blockUrlFlag = data.tabId && data.tabId > 0 && G.blockUrlSet.has(data.tabId);
-    if (!G.enable || (G.blockUrlWhite ? !blockUrlFlag : blockUrlFlag)) {
-        return;
-    }
-
+    if (!G.enable) { return; }
     data.getTime = Date.now();
-
-    if (!isRegex && G.blackList.has(data.requestId)) {
-        G.blackList.delete(data.requestId);
-        return;
-    }
     // 屏蔽特殊页面发起的资源
     if (data.initiator != "null" &&
         data.initiator != undefined &&
@@ -118,10 +103,7 @@ function findMedia(data, isRegex = false, filter = false, timer = false) {
             G.Regex[key].regex.lastIndex = 0;
             let result = G.Regex[key].regex.exec(data.url);
             if (result == null) { continue; }
-            if (G.Regex[key].blackList) {
-                G.blackList.add(data.requestId);
-                return;
-            }
+
             data.extraExt = G.Regex[key].ext ? G.Regex[key].ext : undefined;
             if (result.length == 1) {
                 findMedia(data, true, true);
@@ -245,11 +227,6 @@ function findMedia(data, isRegex = false, filter = false, timer = false) {
         info.title = webInfo?.title ?? "NULL";
         info.favIconUrl = webInfo?.favIconUrl;
         info.webUrl = webInfo?.url;
-        // 屏蔽资源
-        if (!isRegex && G.blackList.has(data.requestId)) {
-            G.blackList.delete(data.requestId);
-            return;
-        }
         // 发送到popup 并检查自动下载
         chrome.runtime.sendMessage({ Message: "popupAddData", data: info }, function () {
             if (G.featAutoDownTabId.size > 0 && G.featAutoDownTabId.has(info.tabId) && chrome.downloads?.State) {
@@ -417,9 +394,6 @@ chrome.runtime.onMessage.addListener(function (Message, sender, sendResponse) {
     }
     // 对tabId的标签 脚本注入或删除
     if (Message.Message == "script") {
-        if (G.damn && G.damnUrlSet.has(Message.tabId)) {
-            return;
-        }
         if (!G.scriptList.has(Message.script)) {
             sendResponse("error no exists");
             return false;
@@ -541,10 +515,7 @@ chrome.runtime.onMessage.addListener(function (Message, sender, sendResponse) {
         sendResponse("ok");
         return true;
     }
-    if (Message.Message == "damnUrlHas") {
-        sendResponse(G.damnUrlSet.has(Message.tabId));
-        return true;
-    }
+
 });
 
 // 选定标签 更新G.tabId
@@ -596,20 +567,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
             }
         });
     }
-    // 检查当前标签是否在屏蔽列表中
-    if (changeInfo.url && tabId > 0) {
-        if (G.blockUrl.length) {
-            G.blockUrlSet.delete(tabId);
-            if (isLockUrl(changeInfo.url)) {
-                G.blockUrlSet.add(tabId);
-            }
-        }
 
-        G.damnUrlSet.delete(tabId);
-        if (isDamnUrl(changeInfo.url)) {
-            G.damnUrlSet.add(tabId);
-        }
-    }
     chrome.sidePanel.setOptions({
         tabId,
         path: "popup.html?tabId=" + tabId
@@ -626,18 +584,7 @@ chrome.webNavigation.onCommitted.addListener(function (details) {
     if (isSpecialPage(details.url) || details.tabId <= 0 || !G.initSyncComplete) { return; }
     // console.log('onCommitted', details);
 
-    // 刷新页面 检查是否在屏蔽列表中
-    if (details.frameId == 0) {
-        G.blockUrlSet.delete(details.tabId);
-        if (isLockUrl(details.url)) {
-            G.blockUrlSet.add(details.tabId);
-        }
 
-        G.damnUrlSet.delete(details.tabId);
-        if (isDamnUrl(details.url)) {
-            G.damnUrlSet.add(details.tabId);
-        }
-    }
 
     // 刷新清理角标数
     if (details.frameId == 0 && (!['auto_subframe', 'manual_subframe', 'form_submit'].includes(details.transitionType)) && G.autoClearMode == 1) {
@@ -691,10 +638,7 @@ chrome.tabs.onRemoved.addListener(function (tabId) {
     chrome.alarms.get("nowClear", function (alarm) {
         !alarm && chrome.alarms.create("nowClear", { when: Date.now() + 1000 });
     });
-    if (G.initSyncComplete) {
-        G.blockUrlSet.has(tabId) && G.blockUrlSet.delete(tabId);
-        G.damnUrlSet.has(tabId) && G.damnUrlSet.delete(tabId);
-    }
+
 });
 
 /**
@@ -927,3 +871,6 @@ function isSpecialPage(url) {
 // chrome.storage.local.get(function (data) { console.log(data.MediaData) });
 // chrome.declarativeNetRequest.getSessionRules(function (rules) { console.log(rules); });
 // chrome.tabs.query({}, function (tabs) { for (let item of tabs) { console.log(item.id); } });
+
+
+

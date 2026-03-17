@@ -45,17 +45,15 @@ G.initSyncComplete = false;
 G.initLocalComplete = false;
 // 缓存数据
 var cacheData = { init: true };
-G.blackList = new Set();    // 正则屏蔽资源列表
-G.blockUrlSet = new Set();    // 屏蔽网址列表
+
+
 G.requestHeaders = new Map();   // 临时储存请求头
 G.urlMap = new Map();   // url查重map
 G.deepSearchTemporarilyClose = null; // 深度搜索临时变量
 
 // 避免抓取列表
-G.damnUrl = [
-    /^https:\/\/.*\.douyin\.com\/.*$/i,
-];
-G.damnUrlSet = new Set();
+
+
 
 // 初始化当前tabId
 chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
@@ -118,9 +116,9 @@ G.OptionLists = {
     ],
     Regex: [
         { "type": "ig", "regex": "https://cache\\.video\\.[a-z]*\\.com/dash\\?tvid=.*", "ext": "json", "state": false },
-        { "type": "ig", "regex": ".*\\.bilivideo\\.(com|cn).*\\/live-bvc\\/.*m4s", "ext": "", "blackList": true, "state": false },
-        { "type": "ig", "regex": "(^https://scontent[a-z0-9-]*\\.cdninstagram\\.com/.*)&bytestart=.*", "ext": "", "blackList": false, "state": false },
-        { "type": "ig", "regex": "(^https://.*\\.fbcdn\\.net/.*)&bytestart=.*", "ext": "", "blackList": false, "state": false },
+        { "type": "ig", "regex": ".*\\.bilivideo\\.(com|cn).*\\/live-bvc\\/.*m4s", "ext": "", "state": false },
+        { "type": "ig", "regex": "(^https://scontent[a-z0-9-]*\\.cdninstagram\\.com/.*)&bytestart=.*", "ext": "", "state": false },
+        { "type": "ig", "regex": "(^https://.*\\.fbcdn\\.net/.*)&bytestart=.*", "ext": "", "state": false },
     ],
     TitleName: false,
     Player: "",
@@ -172,8 +170,6 @@ G.OptionLists = {
     // 第三方服务地址
     onlineServiceAddress: 0,
     chromeLimitSize: 1.8 * 1024 * 1024 * 1024,
-    blockUrl: [],
-    blockUrlWhite: false,
     maxLength: G.isMobile ? 999 : 9999,
     sidePanel: false,   // 侧边栏
     deepSearch: false, // 常开深度搜索
@@ -192,7 +188,6 @@ G.OptionLists = {
     mqttTitleLength: 100,
     mqttDataFormat: "",
     getHtmlDOM: false,
-    damn: false
 };
 
 // 本地储存的配置
@@ -293,11 +288,7 @@ function InitOptions() {
         items.Regex = items.Regex.map(item => {
             let reg = undefined;
             try { reg = new RegExp(item.regex, item.type) } catch (e) { item.state = false; }
-            return { regex: reg, ext: item.ext, blackList: item.blackList, state: item.state }
-        });
-        // 预编译屏蔽通配符
-        items.blockUrl = items.blockUrl.map(item => {
-            return { url: wildcardToRegex(item.url), state: item.state }
+            return { regex: reg, ext: item.ext, state: item.state }
         });
 
         // 兼容旧配置
@@ -322,16 +313,6 @@ function InitOptions() {
         chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: items.sidePanel });
 
         G = { ...items, ...G };
-
-        // 初始化 G.blockUrlSet
-        (typeof isLockUrl == 'function') && chrome.tabs.query({}, function (tabs) {
-            for (const tab of tabs) {
-                if (tab.url) {
-                    isLockUrl(tab.url) && G.blockUrlSet.add(tab.id);
-                    isDamnUrl(tab.url) && G.damnUrlSet.add(tab.id);
-                }
-            }
-        });
 
         chrome.action.setIcon({ path: G.enable ? "/img/icon.png" : "/img/icon-disable.png" });
         G.initSyncComplete = true;
@@ -378,13 +359,7 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
             G.Regex = newValue.map(item => {
                 let reg = undefined;
                 try { reg = new RegExp(item.regex, item.type) } catch (e) { item.state = false; }
-                return { regex: reg, ext: item.ext, blackList: item.blackList, state: item.state }
-            });
-            continue;
-        }
-        if (key == "blockUrl") {
-            G.blockUrl = newValue.map(item => {
-                return { url: wildcardToRegex(item.url), state: item.state }
+                return { regex: reg, ext: item.ext, state: item.state }
             });
             continue;
         }
